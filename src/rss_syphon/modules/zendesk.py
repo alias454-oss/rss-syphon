@@ -73,13 +73,13 @@ def create_ticket(base_url, email, subject, body, group_id, api_token):
     if api_token is not None:
         logger.info(f"Creating Zendesk ticket with subject: {subject}")
         payload = {
-            "priority": "normal",
-            "group_id": group_id,
             "ticket": {
                 "subject": subject,
                 "comment": {
                     "body": body
-                }
+                },
+                "priority": "normal",
+                "group_id": int(group_id)
             }
         }
 
@@ -201,5 +201,4 @@ def dispatch(run_type, message_params, matched, errors, check_stale_keywords=Non
         else:
             logger.info(f"No message body generated for '{run_type}', skipping Zendesk ticket creation.")
     else:
-        msg = f"Warning: No Zendesk token set. No '{run_type}' items will be posted to Zendesk."
-        logger.warning(msg)
+        raise ValueError(f"Zendesk token is not configured for '{run_type}' output.")

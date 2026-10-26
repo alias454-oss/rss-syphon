@@ -1,0 +1,25 @@
+[project]
+name = "rss-syphon"
+version = "0.1.0"
+description = "Scheduled RSS intelligence collection and dispatch"
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "aiohttp>=3,<4",
+    "beautifulsoup4>=4,<5",
+    "brotli>=1,<2",
+    "feedparser>=6,<7",
+    "lxml>=5,<7",
+    "requests>=2,<3",
+    "slack-sdk>=3,<4",
+    "splunk-sdk>=2,<3",
+]
+
+[dependency-groups]
+docs = [
+    "diagrams",
+]
+
+# Preserve the existing script-based entrypoint and src/ import layout.
+[tool.uv]
+package = false

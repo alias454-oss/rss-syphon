@@ -1,14 +1,19 @@
-#!/usr/bin/env ash
+#!/usr/bin/env bash
 
-# Deploy RSS-Syphon on Alpine
+# Exit immediately if a command exits with a non-zero status.
+set -euo pipefail
 
-set -e
-if [[ "${DEBUG}" == "yes" ]]; then
-    set -o xtrace
+# Enable debug logging if DEBUG=yes
+if [[ "${DEBUG:-no}" == "yes" ]]; then
+    echo "DEBUG mode is enabled. Command tracing will be shown."
+    set -x  # turn ON
 else
-    set +x
+    set +x  # turn OFF
 fi
 
-python rss_syphon.py
+echo "Running RSS-Syphon..."
+python3 syphon.py
+echo "Script finished."
 
+# Execute the main container command (CMD)
 exec "$@"

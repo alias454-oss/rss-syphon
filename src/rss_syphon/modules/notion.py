@@ -69,8 +69,8 @@ def check_existing_posts(session, url, db_id):
         logger.info(f"Found {len(md5_match)} existing MD5 hashes in Notion DB {db_id}.")
         return md5_match
     else:
-        msg = f"Error: API query call Failed {res.status_code} : {res.reason}"
-        logger.error(msg)
+        msg = f"Error: Notion database query failed for '{db_id}' ({res.status_code} {res.reason})"
+        raise RuntimeError(msg)
 
 
 def post_errors(session, url, db_id, messages):
@@ -89,6 +89,7 @@ def post_errors(session, url, db_id, messages):
     :param messages: Message body content
     """
     logger.debug(f"Posting {len(messages)} error messages to Notion database {db_id}.")
+    failed_posts = 0
 
     for message in messages:
         if message:
@@ -123,6 +124,10 @@ def post_errors(session, url, db_id, messages):
             else:
                 msg = f"Error: API call failed ({result.status_code} {result.reason}): {result.content}"
                 logger.error(msg)
+                failed_posts += 1
+
+    if failed_posts:
+        raise RuntimeError(f"Failed to post {failed_posts} Notion error messages to database {db_id}.")
 
 
 def post_message(session, url, db_id, messages):
@@ -147,6 +152,7 @@ def post_message(session, url, db_id, messages):
     :param messages: Message body content
     """
     logger.debug(f"Posting {len(messages)} messages to Notion database {db_id}.")
+    failed_posts = 0
 
     for message in messages:
         if message:
@@ -231,6 +237,10 @@ def post_message(session, url, db_id, messages):
             else:
                 msg = f"Error: API call failed ({result.status_code} {result.reason}): {result.content}"
                 logger.error(msg)
+                failed_posts += 1
+
+    if failed_posts:
+        raise RuntimeError(f"Failed to post {failed_posts} Notion articles to database {db_id}.")
 
 
 def clean_html(input_text):
@@ -408,5 +418,4 @@ def dispatch(run_type, message_params, matched, errors, check_stale_keywords=Non
         else:
             logger.debug("No error messages to post to Notion.")
     else:
-        msg = f"Warning: No Notion token set. No '{run_type}' items will be posted to Notion."
-        logger.warning(msg)
+        raise ValueError(f"Notion token is not configured for '{run_type}' output.")

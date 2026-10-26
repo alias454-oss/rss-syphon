@@ -1,9 +1,0 @@
-requests
-feedparser
-asyncio
-aiohttp
-slack_sdk
-splunk-sdk
-beautifulsoup4
-lxml
-brotli
