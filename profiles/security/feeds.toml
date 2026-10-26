@@ -1,0 +1,56 @@
+# Feed data
+# Feed lists are grouped by job type.
+#
+# Feeds and keywords should be reviewed periodically and updated as needed.
+#
+# Optional vendor-specific feeds:
+# Copy the relevant entries into the news or cve arrays below.
+# Select sources based on the products deployed in your environment.
+#
+# Microsoft Security Update Guide (cve)
+# { name = "microsoft", url = "https://api.msrc.microsoft.com/update-guide/rss" },
+#
+# AWS Security Bulletins (cve)
+# { name = "aws-security-bulletins", url = "https://aws.amazon.com/security/security-bulletins/rss/feed/" },
+#
+# AWS Security Blog (news)
+# { name = "aws-security-blog", url = "https://aws.amazon.com/blogs/security/feed/" },
+#
+# Wiz Security Blog (news)
+# { name = "wiz-blog", url = "https://www.wiz.io/feed/rss.xml" },
+#
+# Cloudflare Security Blog (news)
+# { name = "cloudflare-security", url = "https://blog.cloudflare.com/tag/security/rss/" },
+
+[feeds]
+news = [
+  { name = "bleepingcomputer", url = "https://www.bleepingcomputer.com/feed/" },
+  { name = "cisa", url = "https://www.cisa.gov/cybersecurity-advisories/all.xml" },
+  { name = "cisa-ics", url = "https://www.cisa.gov/cybersecurity-advisories/ics-advisories.xml" },
+  { name = "darknet", url = "https://www.darknet.org.uk/feed/" },
+  { name = "darkreading", url = "https://www.darkreading.com/rss.xml" },
+  { name = "exploit-db", url = "https://www.exploit-db.com/rss.xml" },
+  { name = "f5", url = "https://www.f5.com/labs/rss-feeds/threats.xml" },
+  { name = "google-project-zero", url = "https://googleprojectzero.blogspot.com/feeds/posts/default" },
+  { name = "google-threat-intelligence", url = "https://cloudblog.withgoogle.com/topics/threat-intelligence/rss/" },
+  { name = "hacker-news", url = "https://hnrss.org/newest?q=security" },
+  { name = "hacker-news-cyber", url = "https://hnrss.org/newest?q=cyber" },
+  { name = "infosecmag", url = "https://www.infosecurity-magazine.com/rss/news" },
+  { name = "krebsonsecurity", url = "https://krebsonsecurity.com/feed/" },
+  { name = "riskybiz", url = "https://risky.biz/rss.xml" },
+  { name = "sansisc", url = "https://isc.sans.edu/rssfeed.xml" },
+  { name = "schneier", url = "https://schneier.com/blog/atom.xml" },
+  { name = "seclists-infosec", url = "https://seclists.org/rss/isn.rss" },
+]
+
+cve = [
+  { name = "center-for-internet-security", url = "https://www.cisecurity.org/feed/advisories" },
+  { name = "inthewild", url = "https://raw.githubusercontent.com/gmatuz/inthewilddb/master/rss.xml" },
+  { name = "seclists-full", url = "https://seclists.org/rss/fulldisclosure.rss" },
+  { name = "seclists-oss", url = "https://seclists.org/rss/oss-sec.rss" },
+  { name = "tenable", url = "https://www.tenable.com/cve/feeds?sort=newest" },
+  { name = "tenable-updated", url = "https://www.tenable.com/cve/feeds?sort=updated" },
+  { name = "vulners", url = "https://vulners.com/rss.xml" },
+  { name = "zdi-analyzed", url = "https://www.zerodayinitiative.com/rss/published/" },
+  { name = "zdi-upcoming", url = "https://www.zerodayinitiative.com/rss/upcoming/" },
+]

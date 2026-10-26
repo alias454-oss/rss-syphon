@@ -1,0 +1,87 @@
+# Security intelligence profile. The original RSS feed processing and output
+# implementations remain unchanged; this file supplies their settings.
+[system]
+name = "security"
+
+[jobs.news]
+lookback_days = 3
+
+[jobs.cve]
+lookback_days = 3
+
+# Additional keywords for search and ignore
+# Use when items can't go in the global keywords list
+# (e.g., only applies to this job type or dynamic keywords)
+search_keywords = []
+ignored_keywords = [
+  "breach",
+]
+
+# Defines which modules process each job type.
+# Each job type corresponds to specific data:
+#   "news": articles
+#   "cve": CVE articles
+[outputs]
+news = ["slack", "notion", "files"]
+cve = ["slack", "notion", "zendesk", "files"]
+
+# Feed and keyword datasets are loaded separately by data.py.
+
+# Every destination is a normal module implementing dispatch(). Enabling
+# "files" globally in syphon.toml makes the raw JSON output explicit.
+[modules.files]
+destination = "file"              # "stdout" or "file"
+path = "security.ndjson"          # Relative to [system].root_data_dir
+report = true
+
+# Set Slack Configuration parameters
+[modules.slack]
+
+[modules.slack.channels]
+news = "env:SLACK_NEWS_CHANNEL_ID"
+cve = "env:SLACK_CVE_CHANNEL_ID"
+error = "env:SLACK_ERRORS_CHANNEL_ID"
+
+# Set Zendesk Configuration parameters
+[modules.zendesk]
+base_url = "env:ZENDESK_BASE_URL"
+email = "env:ZENDESK_EMAIL"
+group_id = "env:ZENDESK_GROUP_ID"
+
+# Set Notion Configuration parameters
+[modules.notion]
+api_version = "2022-02-22"
+base_url = "https://api.notion.com/v1/"
+
+[modules.notion.databases]
+news = "env:NOTION_NEWS_DATABASE_ID"
+cve = "env:NOTION_CVE_DATABASE_ID"
+error = "env:NOTION_ERRORS_DATABASE_ID"
+
+# Splunk search SPL that returns packages list from tenable vuln data
+# This is an input integration, not a destination in [outputs].
+[modules.splunk]
+
+[modules.splunk.splunk_host]
+base_url = "env:SPLUNK_BASE_URL"
+scheme = "https"
+port = 8089
+
+[modules.splunk.search]
+query = '''
+search index=tenable severity=informational plugin_id=22869 output=*
+| fields output | fields - _raw
+| rex field=output max_match=0 "ii\s+(?<package>.+?\s+\d.+?)\s"
+| fields package
+| mvexpand package
+| dedup package
+| rex field=package "^(?<package_name>.+?)\s(?<package_version>.+?)$"
+| table package_name, package_version
+| sort 0 +package_name
+| stats values(package_name) as packages
+'''
+
+[modules.splunk.search.args]
+earliest_time = "-2d"
+output_mode = "json"
+

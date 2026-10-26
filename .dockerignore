@@ -1,11 +1,15 @@
-# Environment
+# Private configuration and credentials
 .env
-venv/
+syphon.toml
 
-# Byte-compiled / optimized / DLL files
+# Local environments
+venv/
+.venv/
+
+# Git and development artifacts
+.git/
 __pycache__/
 *.py[cod]
-*$py.class
-
-# Thanks mac
-.DS_Store
+*scratch*
+output/
+*.patch

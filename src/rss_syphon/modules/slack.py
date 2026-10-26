@@ -102,8 +102,9 @@ def read_channel(client, channel_id, rss_type):
         }
 
     except SlackApiError as e:
-        msg = f"Error creating conversation: {e}"
+        msg = f"Error reading Slack channel history for '{channel_id}': {e}"
         logger.error(msg)
+        raise
 
     return re_dict
 
@@ -119,6 +120,7 @@ def post_message(client, channel_id, messages):
     :param messages: Message body content
     """
     # messages = message_body.split('\n\n\n\n')
+    failed_posts = 0
     for message in messages.split('\n---EOM---'):
         if message:
             try:
@@ -132,8 +134,12 @@ def post_message(client, channel_id, messages):
                 )
                 logger.info(result)
             except SlackApiError as e:
-                msg = f"Error posting message: {e}"
+                msg = f"Error posting message to Slack channel '{channel_id}': {e}"
                 logger.error(msg)
+                failed_posts += 1
+
+    if failed_posts:
+        raise RuntimeError(f"Failed to post {failed_posts} Slack messages to channel {channel_id}.")
 
 
 def clean_html(input_text):
@@ -277,5 +283,4 @@ def dispatch(run_type, message_params, matched, errors, check_stale_keywords=Non
         if error_message_body:
             post_message(slack_client, slack_channel["error"], error_message_body)
     else:
-        msg = f"Warning: No Slack token set. No '{run_type}' items will be posted to Slack."
-        logger.warning(msg)
+        raise ValueError(f"Slack token is not configured for '{run_type}' output.")

@@ -1,19 +1,31 @@
-# Environment
+# Local environment
 .env
 venv/
+.venv/
 
-# Byte-compiled / optimized / DLL files
+# Local runtime config
+syphon.toml
+
+# Generated output from the files integration
+output/
+
+# Python cache / build noise
 __pycache__/
 *.py[cod]
 *$py.class
+*.egg-info/
+build/
+dist/
 
-# Thanks mac
+# Editor / OS noise
 .DS_Store
-
-# Code editors
-.idea
+.idea/
+.vscode/
 .store
-.vscode
 
-# Local items with scratch in the name
+# Local scratch / throwaway work
 *scratch*
+
+# Local patch-transfer, backup, and generated security artifacts
+/sbom.json
+*.bak

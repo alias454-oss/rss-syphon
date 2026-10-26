@@ -288,6 +288,10 @@ def prepare_feed_message(rss_feeds, keywords_list, ignored_list, hard_ignore=Fal
     Prepare returned RSS feed posts by validating entries, filtering by date,
     and performing keyword searches.
 
+    Articles sharing an exact URL are retained once per run. The first entry
+    keeps its original feed name, with all contributing feeds recorded in
+    rss_feed_names. Keyword counts reflect unique matched articles.
+
     :param rss_feeds: Iterable of (rss_feed_dict, feed_name) tuples.
     :param keywords_list: List of keywords to search articles for.
     :param ignored_list: List of keywords to ignore.
@@ -304,6 +308,11 @@ def prepare_feed_message(rss_feeds, keywords_list, ignored_list, hard_ignore=Fal
         "articles": [],
         "keywords": {}
     }
+
+    # Overlapping feeds can return the same article URL. Keep one article
+    # while retaining its contributing feeds and unique keyword matches.
+    article_indexes = {}
+    article_keywords = []
 
     for rss_feed, rss_feed_name in rss_feeds:
         # Defensive: check types before processing
@@ -342,17 +351,40 @@ def prepare_feed_message(rss_feeds, keywords_list, ignored_list, hard_ignore=Fal
                             # If we get here, it's an article from today so run a keyword search
                             kw_res = search_keywords(item, keywords_list, ignored_list, rss_feed_name, hard_ignore)
 
-                            # Handle returned search results
-                            if kw_res["titles"]:
-                                matched["titles"].extend(kw_res["titles"])
+                            # Handle returned search results, deduplicating only
+                            # when two feeds link to the same article URL.
+                            for article in kw_res["articles"]:
+                                article_url = article.get("link")
+                                article_index = (
+                                    article_indexes.get(article_url)
+                                    if isinstance(article_url, str) and article_url
+                                    else None
+                                )
 
-                            if kw_res["articles"]:
-                                matched["articles"].extend(kw_res["articles"])
+                                if article_index is None:
+                                    article_index = len(matched["articles"])
+                                    if isinstance(article_url, str) and article_url:
+                                        article_indexes[article_url] = article_index
 
-                            # Set count for keyword hits
-                            if kw_res["keywords"]:
+                                    article["rss_feed_names"] = [rss_feed_name]
+                                    matched["articles"].append(article)
+                                    matched["titles"].extend(kw_res["titles"])
+                                    article_keywords.append([])
+                                else:
+                                    article = matched["articles"][article_index]
+                                    if rss_feed_name not in article["rss_feed_names"]:
+                                        article["rss_feed_names"].append(rss_feed_name)
+
+                                # A keyword counts once per unique article even
+                                # when several feeds return that article.
                                 for kw in kw_res["keywords"]:
-                                    matched["keywords"][kw] = matched["keywords"].get(kw, 0) + kw_res["keywords"][kw]
+                                    if kw not in article_keywords[article_index]:
+                                        article_keywords[article_index].append(kw)
+                                        matched["keywords"][kw] = matched["keywords"].get(kw, 0) + 1
+
+                                # Preserve the existing string-valued keywords
+                                # field expected by current integrations.
+                                article["keywords"] = str(article_keywords[article_index]).strip("[]")
                         else:
                             # Otherwise, the article is probably older than today
                             old_articles.append(f"{item_date} - {rss_feed_name} - {item.get('title', 'No Title')}")
