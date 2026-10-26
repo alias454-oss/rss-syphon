@@ -121,13 +121,8 @@ the supplied template), with configuration and datasets in separate TOML files:
 
 ```text
 syphon.conf
-syphon.toml
 profiles/
   security/
-    profile.toml
-    feeds.toml
-    keywords.toml
-  local-land-work/
     profile.toml
     feeds.toml
     keywords.toml
@@ -148,9 +143,8 @@ profiles/
   overrides such as destination settings.
   Global credentials remain authoritative. The loader retains the parameter
   shape expected by the existing integrations.
-- `[jobs.<name>]` declares a feed job and its filtering options. A job only
-  runs when explicitly declared, so the Local Land Work profile cannot run
-  security's CVE job.
+- `[jobs.<name>]` declares a feed job and its filtering options. Only jobs
+  explicitly declared in the selected profile are executed.
 - `feeds.toml` holds `[feeds]` lists grouped by job type. `keywords.toml` holds
   `[keywords]` with shared match and ignore terms (one keyword per line for easy
   editing). These files are optional for profiles without jobs. The security
@@ -192,11 +186,10 @@ Run daily to fetch and process RSS feeds:
 ```bash
 python src/syphon.py
 python src/syphon.py --profile security --check-config
-python src/syphon.py --profile local-land-work --check-config
 python src/syphon.py --profile security
 ```
 
-Set `RSS_PROFILE=local-land-work` instead of passing `--profile` if preferred;
+Set `RSS_PROFILE` instead of passing `--profile` if preferred;
 otherwise `[system].default_profile` selects the profile.
 `--verbose` and `--quiet` temporarily override the configured log level.
 

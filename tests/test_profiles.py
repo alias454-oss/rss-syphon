@@ -81,8 +81,8 @@ class ProfileTests(unittest.TestCase):
     def test_empty_profiles_do_not_require_dataset_files(self):
         """Profiles with no jobs can omit feeds and keywords entirely."""
         with tempfile.TemporaryDirectory() as folder:
-            settings = {**rss_config.load_config("local-land-work"),
-                        "_profile_root": Path(folder)}
+            settings = {**rss_config.load_config("security"),
+                        "jobs": {}, "_profile_root": Path(folder)}
             loaded = rss_data.load_data(settings)
         self.assertEqual(loaded["feeds"], {})
         self.assertEqual(loaded["keywords"], {})
@@ -92,7 +92,7 @@ class ProfileTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             (root / "keywords.toml").write_text('[keywords]\nignored = "bad-type"\n', encoding="utf-8")
-            settings = {**rss_config.load_config("local-land-work"), "_profile_root": root}
+            settings = {**rss_config.load_config("security"), "jobs": {}, "_profile_root": root}
             with self.assertRaisesRegex(ValueError, "ignored"):
                 rss_data.load_data(settings)
 
@@ -105,12 +105,11 @@ class ProfileTests(unittest.TestCase):
         self.assertIn("zendesk_token", modules["zendesk"])
         self.assertEqual(modules["splunk"]["splunk_host"]["port"], 8089)
 
-    def test_local_land_work_is_empty(self):
-        """Do not accidentally execute security's CVE/news jobs in another profile."""
-        profile = load_profile("local-land-work")
-        self.assertEqual(profile["jobs"], {})
-        with patch.object(runner, "run_feed_check") as fetch, redirect_stdout(io.StringIO()):
-            self.assertEqual(runner.main(["--profile", "local-land-work"]), 0)
+    def test_empty_profile_skips_feed_jobs(self):
+        """A profile with no declared jobs does not fetch feeds."""
+        profile = {**self.security, "jobs": {}, "outputs": {}}
+        with patch.object(runner, "run_feed_check") as fetch:
+            runner.run_profile(profile)
             fetch.assert_not_called()
 
     def test_logging_overrides_preserved(self):
@@ -136,20 +135,18 @@ class ProfileTests(unittest.TestCase):
             with self.subTest(absolute=absolute), tempfile.TemporaryDirectory() as folder:
                 root = Path(folder)
                 dogfish = root / "dogfish"
-                (dogfish / "local-land-work").mkdir(parents=True)
-                (dogfish / "local-land-work/profile.toml").write_text(
-                    (REPO / "profiles/local-land-work/profile.toml").read_text(encoding="utf-8"),
-                    encoding="utf-8",
-                )
+                (dogfish / "example").mkdir(parents=True)
+                (dogfish / "example/profile.toml").write_text(
+                    '[system]\nname = "example"\n[jobs]\n', encoding="utf-8")
                 path = str(dogfish) if absolute else "./dogfish"
                 (root / "syphon.toml").write_text(
                     f'[system]\nprofiles_dir = "{path}"\n'
-                    'default_profile = "local-land-work"\n'
+                    'default_profile = "example"\n'
                     '[modules]\nenabled = []\n',
                     encoding="utf-8",
                 )
                 selected = load_profile(project_root=root)
-                self.assertEqual(selected["name"], "local-land-work")
+                self.assertEqual(selected["name"], "example")
                 self.assertEqual(selected["jobs"], {})
 
     def test_missing_profile_directory_is_not_guessed(self):
